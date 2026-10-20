@@ -1,0 +1,36 @@
+# /etc/systemd/system/report-daily.service
+# The timer report-daily.timer starts this oneshot. Do not enable the
+# service itself if the timer is what should own the schedule.
+# Install both files, then:
+#   sudo systemctl daemon-reload
+#   sudo systemctl enable --now report-daily.timer
+
+[Unit]
+Description=Daily report job (oneshot payload for report-daily.timer)
+After=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/python3 /usr/local/lib/report-daily/run.py
+RemainAfterExit=no
+TimeoutStartSec=15min
+
+# Hardening
+# User: create a dedicated account and replace root.
+#   useradd --system --home /var/lib/report-daily --shell /usr/sbin/nologin report-daily
+#   User=report-daily
+#   Group=report-daily
+# Do not set User=nobody. systemd-analyze reports that special user as unsafe.
+User=root
+Group=root
+# NoNewPrivileges: the process cannot gain privileges through setuid or file capabilities.
+NoNewPrivileges=yes
+# ProtectSystem=strict: /usr, /boot, and /etc are read-only for this process.
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+StateDirectory=report-daily
+LogsDirectory=report-daily
+ReadWritePaths=/var/lib/report-daily /var/log/report-daily
+StandardOutput=journal
+StandardError=journal

@@ -1,0 +1,20 @@
+# /etc/systemd/system/report-daily.timer
+# Install with report-daily.service:
+#   sudo cp report-daily.timer report-daily.service /etc/systemd/system/
+#   sudo systemctl daemon-reload
+#   sudo systemctl enable --now report-daily.timer
+# Check: systemctl list-timers report-daily.timer
+
+[Unit]
+Description=Run report-daily.service every day at 06:15
+# Hardening lives on the paired service, not on the timer.
+# report-daily.service sets User, ProtectSystem=strict, and NoNewPrivileges=yes.
+
+[Timer]
+OnCalendar=*-*-* 06:15:00
+Persistent=true
+Unit=report-daily.service
+RandomizedDelaySec=5min
+
+[Install]
+WantedBy=timers.target
